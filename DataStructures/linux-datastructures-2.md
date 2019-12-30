@@ -1,13 +1,15 @@
-Data Structures in the Linux Kernel
+리눅스 커널의 여러 데이터 구조
 ================================================================================
 
-Radix tree
+기수(Radix) 트리
 --------------------------------------------------------------------------------
 
-As you already know linux kernel provides many different libraries and functions which implement different data structures and algorithms. In this part we will consider one of these data structures - [Radix tree](http://en.wikipedia.org/wiki/Radix_tree). There are two files which are related to `radix tree` implementation and API in the linux kernel:
+이미 알고 있듯이 리눅스 커널은 다양한 데이터 구조와 알고리즘을 구현하는 다양한 라이브러리와 함수를 제공합니다.  리눅스 커널에서 제공하는 자료구조 중 하나 인 [기수(Radix) 트리](https://en.wikipedia.org/wiki/Radix_tree) 에 대해 다뤄 볼 것입니다. 
 
 * [include/linux/radix-tree.h](https://github.com/torvalds/linux/blob/16f73eb02d7e1765ccab3d2018e0bd98eb93d973/include/linux/radix-tree.h)
 * [lib/radix-tree.c](https://github.com/torvalds/linux/blob/16f73eb02d7e1765ccab3d2018e0bd98eb93d973/lib/radix-tree.c)
+
+위에 두 파일은 리눅스 커널에서 `기수(Radix) 트리`의 구현과 API에 관련된 파일입니다.
 
 Lets talk about what a `radix tree` is. Radix tree is a `compressed trie` where a [trie](http://en.wikipedia.org/wiki/Trie) is a data structure which implements an interface of an associative array and allows to store values as `key-value`. The keys are usually strings, but any data type can be used. A trie is different from an `n-tree` because of its nodes. Nodes of a trie do not store keys; instead, a node of a trie stores single character labels. The key which is related to a given node is derived by traversing from the root of the tree to this node. For example:
 
