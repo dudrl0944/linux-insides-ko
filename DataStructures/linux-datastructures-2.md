@@ -44,8 +44,6 @@
                             +-----------+
 ```
 위의 `트라이(tire)`에서 `go`와 `cat` `키(key)`인 것을 알 수 있습니다. `압축 트라이(compressed trie)` 또는 `기수(Radix) 트리`는 자식이 하나만있는 모든 중간 노드가 제거된다는 점에서 `trie`와 다릅니다.
-?? 이부분은 더 확인후 다시 적기
-So in this example, we can see the `trie` with keys, `go` and `cat`. The compressed trie or `radix tree` differs from `trie` in that all intermediates nodes which have only one child are removed.
 
 리눅스 커널에서 `기수(Radix) 트리`는 `값(value)`을 `정수 키(integer key)`에 매핑하는 자료구조이다. 아래 파일에서 다음과 같은 구조로 구현됩니다.
 [include/linux/radix-tree.h](https://github.com/torvalds/linux/blob/16f73eb02d7e1765ccab3d2018e0bd98eb93d973/include/linux/radix-tree.h):
@@ -56,23 +54,25 @@ struct radix_tree_root {
          struct radix_tree_node  __rcu *rnode;
 };
 ```
-radix_tree_root 구조체는 아래 세가지 필드를 포함하고 있습니다.
+`radix_tree_root` 구조체는 아래 세가지 필드를 포함하고 있습니다.
 * `height`   - 트리의 높이;
 * `gfp_mask` - 메모리의 할당과 수행 방법에 대해 알려줍니다; (gfp_mask는 페이지 할당자에게 할당 할 수있는 페이지, 할당자가 더 많은 메모리가 해제 될 때까지 대기 할 수 있는지 등을 알리는 데 사용됩니다.)
 * `rnode`    - 자식노드에 대한 포인터.
 
 
-The first field we will discuss is `gfp_mask`:
+첫 번째 이야기할 것은 `gfp_mask`이다.
 
-Low-level kernel memory allocation functions take a set of flags as - `gfp_mask`, which describes how that allocation is to be performed. These `GFP_` flags which control the allocation process can have following values: (`GF_NOIO` flag) means sleep and wait for memory, (`__GFP_HIGHMEM` flag) means high memory can be used, (`GFP_ATOMIC` flag) means the allocation process has high-priority and can't sleep etc.
+낮은 수준의 커널 메모리 할당 기능은 플래그를  `gfp_mask`으로 지정합니다. `gfp_mask`는  할당을 수행하는 방법을 설명합니다. 할당 프로세스를 제어하는 `GFP_` 플래그는 다음과 같은 값을 가질 수 있습니다 :  `GF_NOIO`, `__GFP_HIGHMEM`, `GFP_ATOMIC`.
 
-* `GFP_NOIO` - can sleep and wait for memory;
-* `__GFP_HIGHMEM` - high memory can be used;
-* `GFP_ATOMIC` - allocation process is high-priority and can't sleep;
+| flag | mean|
+|-----|------|
+|`GF_NOIO`| 메모리에 대한 절전 및 대기|
+|`__GFP_HIGHMEM`|높은 메모리를 사용 할 수 있음|
+|`GFP_ATOMIC` |할당 프로세스 우선순위가 높아서 절전 할 수 없다.|
 
-etc.
 
-The next field is `rnode`:
+다음은  필드는 `rnode` 이다
+
 
 ```C
 struct radix_tree_node {
@@ -91,6 +91,18 @@ struct radix_tree_node {
         unsigned long   tags[RADIX_TREE_MAX_TAGS][RADIX_TREE_TAG_LONGS];
 };
 ```
+이 구조는 부모의 오프셋과 하단의 높이, 하위 노드의 수와 노드에 접근하고 노드를 해제하기 위한 필드를 포함하고 있다. 이 필드는 아래에 설명되어 있다.
+
+* `path` - 부모에서 오프셋 및 아래에서 높이
+* `count` - 하위 노드의 수
+* `parent` - 상위 노드에 대한 포인터
+* `private_data` - 트리 사용자가 사용함
+* `rcu_head` - 노드를 해제하는 데 사용됨
+* `private_list` - 트리 사용자가 사용함
+
+
+라딕스 트리니드(radix_tree_node)-태그(tags)-슬롯(slots)의 마지막 두 분야가 중요하고 흥미롭다. 모든 노드는 데이터에 대한 포인터를 저장하는 슬롯 세트를 포함할 수 있다. 리눅스 커널 라딕스 트리 구현의 빈 슬롯은 NULL을 저장한다. 리눅스 커널의 라딕스 트리도 라딕스_트리_노드 구조의 태그와 연관된 태그를 지원한다. 태그는 라딕스 트리에 저장된 레코드에 개별 비트를 설정할 수 있다.
+
 
 This structure contains information about the offset in a parent and height from the bottom, count of the child nodes and fields for accessing and freeing a node. This fields are described below:
 
